@@ -1,0 +1,9 @@
+{
+  "type" : "tagboard",
+  "num_row": 5,
+  "num_col": 7,
+  "h_dist" : 0.01,
+  "v_dist" : 0.01,
+  "cell_size" : 0.005,
+  "start_id" : 0
+}
