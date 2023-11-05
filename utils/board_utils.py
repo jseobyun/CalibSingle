@@ -5,7 +5,7 @@ import numpy as np
 from pupil_apriltags import Detector
 
 ### for Window
-os.add_dll_directory('C:/Users/whdtj/anaconda3/envs/calibsingle/Lib/site-packages/pupil_apriltags.libs')
+# os.add_dll_directory('C:/Users/whdtj/anaconda3/envs/calibsingle/Lib/site-packages/pupil_apriltags.libs')
 
 at_detector = Detector(
    families="tagStandard41h12",
@@ -18,24 +18,27 @@ at_detector = Detector(
 )
 criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 
-def get_tag3d(cell_size, ridx, cidx):
+def get_tag3d(cell_size, ridx, cidx, v_dist, h_dist):
     tag3d = np.array([[0, 0, 0],
                       [5, 0, 0],
                       [5, 5, 0],
                       [0, 5, 0]], dtype=np.float32) * cell_size
-    tag3d[:, 0] += cidx * (9*cell_size)
-    tag3d[:, 1] -= ridx * (9*cell_size)
+    tag3d[:, 0] += cidx * (9*cell_size) + cidx*h_dist
+    tag3d[:, 1] -= ridx * (9*cell_size) + ridx*v_dist
+
     return tag3d
 
 def create_tagboard(board):
     num_row, num_col = board["num_row"], board["num_col"]
     cell_size = board["cell_size"]
+    h_dist = board["h_dist"]
+    v_dist = board["v_dist"]
     start_id = board["start_id"]
     tags = {}
     for ridx in range(num_row):
         for cidx in range(num_col):
             target_id = start_id + (ridx*num_col) + cidx
-            tags[target_id] = get_tag3d(cell_size, ridx, cidx)
+            tags[target_id] = get_tag3d(cell_size, ridx, cidx, v_dist, h_dist)
     board["tags"] = tags
     return board
 
@@ -97,7 +100,7 @@ def detect_chessboard(img, board, refine=True):
     else:
         img_gray = img
     num_row, num_col = board["num_row"], board["num_col"]
-    ret, corners = cv2.findChessboardCorners(img_gray, (num_row, num_col), None)
+    ret, corners = cv2.findChessboardCorners(img_gray, (num_col, num_row), None)
     if refine:
         corners = cv2.cornerSubPix(img_gray, corners, (11, 11), (-1, -1), criteria)
 
